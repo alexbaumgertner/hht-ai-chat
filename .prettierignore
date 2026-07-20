@@ -1,0 +1,11 @@
+.next
+node_modules
+dist
+coverage
+playwright-report
+test-results
+pnpm-lock.yaml
+package-lock.json
+src/payload-types.ts
+src/app/(payload)/admin/importMap.js
+*.db
