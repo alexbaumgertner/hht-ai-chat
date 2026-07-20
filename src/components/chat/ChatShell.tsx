@@ -138,7 +138,7 @@ export function ChatShell() {
                 className={styles.error}
                 type="error"
                 showIcon
-                message={
+                title={
                   validationError ?? 'Не удалось получить ответ. Проверьте соединение и повторите.'
                 }
               />
@@ -182,7 +182,7 @@ export function ChatShell() {
           className={styles.safety}
           type="warning"
           showIcon
-          message="При сильном кровотечении или резком ухудшении самочувствия обратитесь за неотложной помощью."
+          title="При сильном кровотечении или резком ухудшении самочувствия обратитесь за неотложной помощью."
         />
       </div>
     </section>
