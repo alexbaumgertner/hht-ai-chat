@@ -45,13 +45,13 @@ HHT patients consult an AI about symptoms, treatment, tests, lifestyle. Admins c
 
 ### `ai-settings` (globals preferred)
 
-| Field                 | Type                   | Notes                                                   |
-| --------------------- | ---------------------- | ------------------------------------------------------- |
-| `provider`            | select (e.g. `openai`) | v1: one provider                                        |
-| `apiKey`              | text                   | **never** expose to client; encrypt at rest if possible |
-| `model`               | text                   | e.g. `gpt-4.1`                                          |
-| `defaultMessageLimit` | number                 | applied when user has no override                       |
-| `systemPrompt`        | textarea               | HHT-focused consult prompt + disclaimer rules           |
+| Field                 | Type                   | Notes                                                                           |
+| --------------------- | ---------------------- | ------------------------------------------------------------------------------- |
+| `provider`            | select (e.g. `openai`) | v1: one provider                                                                |
+| `apiKey`              | text                   | **never** expose to client; use on server-side only encrypt at rest if possible |
+| `model`               | text                   | e.g. `gpt-4.1`                                                                  |
+| `defaultMessageLimit` | number                 | applied when user has no override                                               |
+| `systemPrompt`        | textarea               | HHT-focused consult prompt + disclaimer rules                                   |
 
 ### `chats`
 
@@ -70,6 +70,7 @@ Access: patient read/create/update **own** only; admin all.
 | `chat`       | relationship → chats                      |                           |
 | `role`       | select: `user` \| `assistant` \| `system` |                           |
 | `content`    | textarea                                  |                           |
+| `createdAt`  | Date                                      |                           |
 | `tokenCount` | number \| optional                        | if provider returns usage |
 
 Access: via parent chat ownership.
@@ -78,7 +79,7 @@ Access: via parent chat ownership.
 
 ### Chat turn
 
-```
+```sh
 Patient UI
   → POST /api/chat  { chatId?, content }
   → Auth (Payload session)
@@ -115,7 +116,7 @@ sequenceDiagram
 
 ### Admin config
 
-```
+```sh
 Admin (Payload UI)
   → Update ai-settings global (apiKey, model, defaultMessageLimit, systemPrompt)
   → Optionally set users.messageLimit
@@ -123,7 +124,7 @@ Admin (Payload UI)
 
 ### PDF export
 
-```
+```sh
 Patient UI
   → GET /api/chats/:id/pdf
   → Auth + ownership check
@@ -201,7 +202,9 @@ UI needs: message list, composer, remaining quota indicator, disclaimer banner, 
 
 ## File touch map (expected)
 
-```
+Not a strict rule, follow the payload CSM best practices.
+
+```sh
 src/payload.config.ts          # register globals/collections
 src/collections/Users.ts       # role, limits
 src/collections/Chats.ts       # new
