@@ -6,7 +6,7 @@ Source of truth: [tech-spec-patient-ai-chat.md](./tech-spec-patient-ai-chat.md).
 
 - Next.js 16 App Router + Payload 3 + Postgres
 - Patient UI: Ant Design (`antd`)
-- AI: Vercel AI SDK (`ai` + `@ai-sdk/openai`), streaming
+- AI: Vercel AI SDK (`ai` + `@ai-sdk/openai` / `@ai-sdk/google`), streaming
 - PDF: `pdfkit`
 - Limit unit: messages per month
 
@@ -44,5 +44,6 @@ Source of truth: [tech-spec-patient-ai-chat.md](./tech-spec-patient-ai-chat.md).
 ## Env vars
 
 - `DATABASE_URL`, `PAYLOAD_SECRET` (required)
-- `OPENAI_API_KEY` (optional override for `ai-settings.apiKey`)
+- `OPENAI_API_KEY` (optional override for `ai-settings.apiKey` when provider is OpenAI)
+- `GOOGLE_GENERATIVE_AI_API_KEY` (optional override for `ai-settings.apiKey` when provider is Gemini)
 - `CRON_SECRET` (Bearer token for `GET /api/cron/reset-usage`)

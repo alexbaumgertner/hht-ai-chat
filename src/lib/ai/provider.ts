@@ -1,3 +1,4 @@
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createOpenAI } from '@ai-sdk/openai'
 import { streamText } from 'ai'
 
@@ -19,12 +20,13 @@ export function createChatStream(options: {
     throw new Error('AI API key is not configured')
   }
 
-  const openai = createOpenAI({
-    apiKey: settings.apiKey,
-  })
+  const model =
+    settings.provider === 'gemini'
+      ? createGoogleGenerativeAI({ apiKey: settings.apiKey })(settings.model)
+      : createOpenAI({ apiKey: settings.apiKey })(settings.model)
 
   return streamText({
-    model: openai(settings.model),
+    model,
     system: settings.systemPrompt,
     messages,
     onFinish: async ({ text, usage }) => {

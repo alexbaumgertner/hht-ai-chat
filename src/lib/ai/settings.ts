@@ -20,10 +20,14 @@ export async function loadAiSettings(payload: Payload): Promise<ResolvedAiSettin
     overrideAccess: true,
   })) as AiSetting
 
-  const apiKey = process.env.OPENAI_API_KEY || settings.apiKey || ''
+  const provider = settings.provider || 'openai'
+  const apiKey =
+    provider === 'gemini'
+      ? process.env.GOOGLE_GENERATIVE_AI_API_KEY || settings.apiKey || ''
+      : process.env.OPENAI_API_KEY || settings.apiKey || ''
 
   return {
-    provider: settings.provider || 'openai',
+    provider,
     apiKey,
     model: settings.model || 'gpt-4.1',
     defaultMessageLimit: settings.defaultMessageLimit ?? 50,

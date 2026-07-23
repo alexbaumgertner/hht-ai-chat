@@ -15,14 +15,17 @@ export const AiSettings: GlobalConfig = {
       type: 'select',
       required: true,
       defaultValue: 'openai',
-      options: [{ label: 'OpenAI', value: 'openai' }],
+      options: [
+        { label: 'OpenAI', value: 'openai' },
+        { label: 'Gemini', value: 'gemini' },
+      ],
     },
     {
       name: 'apiKey',
       type: 'text',
       admin: {
         description:
-          'OpenAI API key. Never exposed to patients. Optional OPENAI_API_KEY env overrides this.',
+          'API key for the selected provider. Never exposed to patients. Optional env override: OPENAI_API_KEY (OpenAI) or GOOGLE_GENERATIVE_AI_API_KEY (Gemini).',
       },
       access: {
         read: adminFieldOnly,
@@ -35,7 +38,8 @@ export const AiSettings: GlobalConfig = {
       required: true,
       defaultValue: 'gpt-4.1',
       admin: {
-        description: 'Model id passed to the provider (e.g. gpt-4.1).',
+        description:
+          'Model id for the selected provider (e.g. gpt-4.1 for OpenAI, gemini-2.5-flash for Gemini).',
       },
     },
     {

@@ -418,13 +418,13 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface AiSetting {
   id: number;
-  provider: 'openai';
+  provider: 'openai' | 'gemini';
   /**
-   * OpenAI API key. Never exposed to patients. Optional OPENAI_API_KEY env overrides this.
+   * API key for the selected provider. Never exposed to patients. Optional env override: OPENAI_API_KEY (OpenAI) or GOOGLE_GENERATIVE_AI_API_KEY (Gemini).
    */
   apiKey?: string | null;
   /**
-   * Model id passed to the provider (e.g. gpt-4.1).
+   * Model id for the selected provider (e.g. gpt-4.1 for OpenAI, gemini-2.5-flash for Gemini).
    */
   model: string;
   /**
