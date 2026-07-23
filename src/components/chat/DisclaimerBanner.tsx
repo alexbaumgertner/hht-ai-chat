@@ -10,7 +10,7 @@ export function DisclaimerBanner() {
     <Alert
       type="info"
       showIcon
-      message="Educational information only"
+      title="Educational information only"
       description={MEDICAL_DISCLAIMER}
       style={{ marginBottom: 16 }}
     />
