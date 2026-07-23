@@ -1,4 +1,8 @@
-// Any setup scripts you might need go here
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-// Load .env files
-import 'dotenv/config'
+const dirname = path.dirname(fileURLToPath(import.meta.url))
+
+dotenv.config({ path: path.resolve(dirname, '.env') })
+dotenv.config({ path: path.resolve(dirname, '.env.local'), override: true })

@@ -69,26 +69,38 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    chats: Chat;
+    messages: Message;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    chats: {
+      messages: 'messages';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    chats: ChatsSelect<false> | ChatsSelect<true>;
+    messages: MessagesSelect<false> | MessagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'ai-settings': AiSetting;
+  };
+  globalsSelect: {
+    'ai-settings': AiSettingsSelect<false> | AiSettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -122,7 +134,20 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
+  role: 'admin' | 'patient';
+  /**
+   * Override monthly message limit. Leave empty to use global default.
+   */
+  messageLimit?: number | null;
+  /**
+   * Messages used in the current billing period.
+   */
+  messagesUsed?: number | null;
+  /**
+   * Start of the current usage period (monthly reset).
+   */
+  limitPeriodStart?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -147,7 +172,7 @@ export interface User {
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -163,10 +188,46 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chats".
+ */
+export interface Chat {
+  id: number;
+  user: number | User;
+  title: string;
+  status: 'active' | 'archived';
+  /**
+   * Messages in this chat (admin inspection).
+   */
+  messages?: {
+    docs?: (number | Message)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "messages".
+ */
+export interface Message {
+  id: number;
+  chat: number | Chat;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  /**
+   * Optional token usage from the provider.
+   */
+  tokenCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -183,20 +244,28 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'chats';
+        value: number | Chat;
+      } | null)
+    | ({
+        relationTo: 'messages';
+        value: number | Message;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -206,10 +275,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -229,7 +298,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -240,6 +309,10 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
+  messageLimit?: T;
+  messagesUsed?: T;
+  limitPeriodStart?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -274,6 +347,30 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chats_select".
+ */
+export interface ChatsSelect<T extends boolean = true> {
+  user?: T;
+  title?: T;
+  status?: T;
+  messages?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "messages_select".
+ */
+export interface MessagesSelect<T extends boolean = true> {
+  chat?: T;
+  role?: T;
+  content?: T;
+  tokenCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -314,6 +411,46 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-settings".
+ */
+export interface AiSetting {
+  id: number;
+  provider: 'openai' | 'gemini';
+  /**
+   * API key for the selected provider. Never exposed to patients. Optional env override: OPENAI_API_KEY (OpenAI) or GOOGLE_GENERATIVE_AI_API_KEY (Gemini).
+   */
+  apiKey?: string | null;
+  /**
+   * Model id for the selected provider (e.g. gpt-4.1 for OpenAI, gemini-2.5-flash for Gemini).
+   */
+  model: string;
+  /**
+   * Default monthly message limit when a user has no override.
+   */
+  defaultMessageLimit: number;
+  /**
+   * System prompt sent with every chat turn.
+   */
+  systemPrompt: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-settings_select".
+ */
+export interface AiSettingsSelect<T extends boolean = true> {
+  provider?: T;
+  apiKey?: T;
+  model?: T;
+  defaultMessageLimit?: T;
+  systemPrompt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

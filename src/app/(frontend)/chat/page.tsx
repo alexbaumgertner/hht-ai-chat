@@ -1,12 +1,16 @@
+import { App } from 'antd'
 import { headers as getHeaders } from 'next/headers.js'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
+import React from 'react'
 
-import { isAdmin, isPatient } from '@/access'
+import { isPatient } from '@/access'
 import config from '@/payload.config'
 import type { User } from '@/payload-types'
 
-export default async function HomePage() {
+import ChatHomeClient from './ChatHomeClient'
+
+export default async function ChatPage() {
   const headers = await getHeaders()
   const payload = await getPayload({ config })
   const { user } = await payload.auth({ headers })
@@ -15,13 +19,13 @@ export default async function HomePage() {
     redirect('/login')
   }
 
-  if (isAdmin(user as User)) {
+  if (!isPatient(user as User)) {
     redirect('/admin')
   }
 
-  if (isPatient(user as User)) {
-    redirect('/chat')
-  }
-
-  redirect('/login')
+  return (
+    <App>
+      <ChatHomeClient />
+    </App>
+  )
 }
