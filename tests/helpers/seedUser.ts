@@ -4,15 +4,15 @@ import config from '../../src/payload.config.js'
 export const testUser = {
   email: 'dev@payloadcms.com',
   password: 'test',
+  role: 'admin' as const,
 }
 
 /**
- * Seeds a test user for e2e admin tests.
+ * Seeds a test admin user for e2e admin tests.
  */
 export async function seedTestUser(): Promise<void> {
   const payload = await getPayload({ config })
 
-  // Delete existing test user if any
   await payload.delete({
     collection: 'users',
     where: {
@@ -22,10 +22,10 @@ export async function seedTestUser(): Promise<void> {
     },
   })
 
-  // Create fresh test user
   await payload.create({
     collection: 'users',
     data: testUser,
+    overrideAccess: true,
   })
 }
 
