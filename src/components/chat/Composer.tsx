@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Input, Space } from 'antd'
+import { Button, Grid, Input, Space } from 'antd'
 import React, { useState } from 'react'
 
 type Props = {
@@ -12,6 +12,8 @@ type Props = {
 
 export function Composer({ disabled, loading, placeholder, onSend }: Props) {
   const [value, setValue] = useState('')
+  const screens = Grid.useBreakpoint()
+  const isMobile = screens.md === false
 
   const submit = async () => {
     const content = value.trim()
@@ -35,7 +37,13 @@ export function Composer({ disabled, loading, placeholder, onSend }: Props) {
           }
         }}
       />
-      <Button type="primary" loading={loading} disabled={disabled || !value.trim()} onClick={() => void submit()}>
+      <Button
+        type="primary"
+        size={isMobile ? 'large' : 'middle'}
+        loading={loading}
+        disabled={disabled || !value.trim()}
+        onClick={() => void submit()}
+      >
         Send
       </Button>
     </Space.Compact>

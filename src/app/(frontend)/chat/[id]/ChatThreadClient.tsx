@@ -1,12 +1,13 @@
 'use client'
 
-import { App, Button, Typography } from 'antd'
+import { FilePdfOutlined } from '@ant-design/icons'
+import { App, Button, Grid, Tooltip } from 'antd'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
 
+import { ChatPanel } from '@/components/chat/ChatPanel'
 import { ChatShell } from '@/components/chat/ChatShell'
-import { Composer } from '@/components/chat/Composer'
-import { MessageList, type ChatMessage } from '@/components/chat/MessageList'
+import type { ChatMessage } from '@/components/chat/MessageList'
 import type { ThreadSummary } from '@/components/chat/ThreadList'
 
 type Quota = { used: number; limit: number; remaining: number }
@@ -16,6 +17,8 @@ export default function ChatThreadClient() {
   const chatId = params.id
   const router = useRouter()
   const { message } = App.useApp()
+  const screens = Grid.useBreakpoint()
+  const isDesktop = screens.md !== false
 
   const [threads, setThreads] = useState<ThreadSummary[]>([])
   const [title, setTitle] = useState('Chat')
@@ -126,6 +129,24 @@ export default function ChatThreadClient() {
     window.location.href = `/api/chats/${chatId}/pdf`
   }
 
+  const pdfDisabled = messages.length === 0
+
+  const headerExtra = isDesktop ? (
+    <Button onClick={downloadPdf} disabled={pdfDisabled}>
+      Download PDF
+    </Button>
+  ) : (
+    <Tooltip title="Download PDF">
+      <Button
+        type="text"
+        icon={<FilePdfOutlined />}
+        aria-label="Download PDF"
+        onClick={downloadPdf}
+        disabled={pdfDisabled}
+      />
+    </Tooltip>
+  )
+
   return (
     <ChatShell
       threads={threads}
@@ -133,36 +154,16 @@ export default function ChatThreadClient() {
       used={quota.used}
       limit={quota.limit}
       threadsLoading={loading}
-      headerExtra={
-        <Button onClick={downloadPdf} disabled={messages.length === 0}>
-          Download PDF
-        </Button>
-      }
+      headerExtra={headerExtra}
     >
-      <Typography.Title level={4} style={{ marginTop: 0 }}>
-        {title}
-      </Typography.Title>
-      <div
-        style={{
-          background: '#fff',
-          borderRadius: 8,
-          border: '1px solid #dde3df',
-          padding: 16,
-          minHeight: 360,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div style={{ flex: 1, overflow: 'auto', marginBottom: 12 }}>
-          <MessageList messages={messages} streamingContent={streaming} />
-        </div>
-        {overLimit ? (
-          <Typography.Text type="danger">
-            You have reached your monthly message limit. Please check back next month.
-          </Typography.Text>
-        ) : null}
-        <Composer disabled={overLimit} loading={sending} onSend={onSend} />
-      </div>
+      <ChatPanel
+        title={title}
+        messages={messages}
+        streamingContent={streaming}
+        overLimit={overLimit}
+        sending={sending}
+        onSend={onSend}
+      />
     </ChatShell>
   )
 }

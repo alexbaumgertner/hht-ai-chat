@@ -15,14 +15,20 @@ type Props = {
   threads: ThreadSummary[]
   activeId?: string
   loading?: boolean
+  onNavigate?: () => void
 }
 
-export function ThreadList({ threads, activeId, loading }: Props) {
+export function ThreadList({ threads, activeId, loading, onNavigate }: Props) {
   const router = useRouter()
+
+  const goNewChat = () => {
+    onNavigate?.()
+    router.push('/chat')
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 12 }}>
-      <Button type="primary" block onClick={() => router.push('/chat')}>
+      <Button type="primary" block onClick={goNewChat}>
         New chat
       </Button>
       {threads.length === 0 && !loading ? (
@@ -40,8 +46,12 @@ export function ThreadList({ threads, activeId, loading }: Props) {
                   cursor: 'pointer',
                 }}
               >
-                <Link href={`/chat/${item.id}`} style={{ width: '100%', color: 'inherit' }}>
-                  <Typography.Text ellipsis style={{ display: 'block', maxWidth: 200 }}>
+                <Link
+                  href={`/chat/${item.id}`}
+                  onClick={() => onNavigate?.()}
+                  style={{ width: '100%', color: 'inherit' }}
+                >
+                  <Typography.Text ellipsis style={{ display: 'block', maxWidth: '100%' }}>
                     {item.title || 'Untitled'}
                   </Typography.Text>
                 </Link>

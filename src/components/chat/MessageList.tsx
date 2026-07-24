@@ -14,6 +14,14 @@ type Props = {
   streamingContent?: string
 }
 
+const bubbleTextStyle: React.CSSProperties = {
+  margin: 0,
+  color: 'inherit',
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
+  wordBreak: 'break-word',
+}
+
 export function MessageList({ messages, streamingContent }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -46,11 +54,7 @@ export function MessageList({ messages, streamingContent }: Props) {
               borderRadius: isUser ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
             }}
           >
-            <Typography.Paragraph
-              style={{ margin: 0, color: 'inherit', whiteSpace: 'pre-wrap' }}
-            >
-              {message.content}
-            </Typography.Paragraph>
+            <Typography.Paragraph style={bubbleTextStyle}>{message.content}</Typography.Paragraph>
           </div>
         )
       })}
@@ -64,7 +68,7 @@ export function MessageList({ messages, streamingContent }: Props) {
             borderRadius: '12px 12px 12px 4px',
           }}
         >
-          <Typography.Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+          <Typography.Paragraph style={{ ...bubbleTextStyle, color: undefined }}>
             {streamingContent}
           </Typography.Paragraph>
         </div>

@@ -1,12 +1,12 @@
 'use client'
 
-import { App, Typography } from 'antd'
+import { App } from 'antd'
 import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
 
+import { ChatPanel } from '@/components/chat/ChatPanel'
 import { ChatShell } from '@/components/chat/ChatShell'
-import { Composer } from '@/components/chat/Composer'
-import { MessageList, type ChatMessage } from '@/components/chat/MessageList'
+import type { ChatMessage } from '@/components/chat/MessageList'
 import type { ThreadSummary } from '@/components/chat/ThreadList'
 
 type Quota = { used: number; limit: number; remaining: number }
@@ -113,30 +113,14 @@ export default function ChatHomeClient() {
 
   return (
     <ChatShell threads={threads} used={quota.used} limit={quota.limit} threadsLoading={loading}>
-      <Typography.Title level={4} style={{ marginTop: 0 }}>
-        New conversation
-      </Typography.Title>
-      <div
-        style={{
-          background: '#fff',
-          borderRadius: 8,
-          border: '1px solid #dde3df',
-          padding: 16,
-          minHeight: 360,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div style={{ flex: 1, overflow: 'auto', marginBottom: 12 }}>
-          <MessageList messages={messages} streamingContent={streaming} />
-        </div>
-        {overLimit ? (
-          <Typography.Text type="danger">
-            You have reached your monthly message limit. Please check back next month.
-          </Typography.Text>
-        ) : null}
-        <Composer disabled={overLimit} loading={sending} onSend={onSend} />
-      </div>
+      <ChatPanel
+        title="New conversation"
+        messages={messages}
+        streamingContent={streaming}
+        overLimit={overLimit}
+        sending={sending}
+        onSend={onSend}
+      />
     </ChatShell>
   )
 }
