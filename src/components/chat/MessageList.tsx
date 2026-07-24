@@ -3,6 +3,8 @@
 import { Empty, Typography } from 'antd'
 import React, { useEffect, useRef } from 'react'
 
+import { MarkdownContent } from '@/components/chat/MarkdownContent'
+
 export type ChatMessage = {
   id?: string | number
   role: 'user' | 'assistant' | 'system'
@@ -54,7 +56,11 @@ export function MessageList({ messages, streamingContent }: Props) {
               borderRadius: isUser ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
             }}
           >
-            <Typography.Paragraph style={bubbleTextStyle}>{message.content}</Typography.Paragraph>
+            {isUser ? (
+              <Typography.Paragraph style={bubbleTextStyle}>{message.content}</Typography.Paragraph>
+            ) : (
+              <MarkdownContent content={message.content} />
+            )}
           </div>
         )
       })}
@@ -68,9 +74,7 @@ export function MessageList({ messages, streamingContent }: Props) {
             borderRadius: '12px 12px 12px 4px',
           }}
         >
-          <Typography.Paragraph style={{ ...bubbleTextStyle, color: undefined }}>
-            {streamingContent}
-          </Typography.Paragraph>
+          <MarkdownContent content={streamingContent} />
         </div>
       ) : null}
       <div ref={bottomRef} />
