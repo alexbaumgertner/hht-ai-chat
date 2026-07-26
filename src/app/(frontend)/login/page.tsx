@@ -9,7 +9,7 @@ import LoginForm from './LoginForm'
  */
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   NoEmailFromProvider:
-    'That account did not share an email address. Add a verified email to your Facebook account, or sign in with your email and password.',
+    'That account did not share an email address. Add a verified email to your Facebook account, or sign in with an email code.',
   OAuthAccountNotLinked:
     'An account with this email already exists. Please sign in the way you did the first time.',
   AccessDenied: 'Access was denied by the provider.',

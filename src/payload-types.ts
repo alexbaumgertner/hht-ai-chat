@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     chats: Chat;
     messages: Message;
+    'login-otps': LoginOtp;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -86,6 +87,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     chats: ChatsSelect<false> | ChatsSelect<true>;
     messages: MessagesSelect<false> | MessagesSelect<true>;
+    'login-otps': LoginOtpsSelect<false> | LoginOtpsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -234,6 +236,19 @@ export interface Message {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "login-otps".
+ */
+export interface LoginOtp {
+  id: number;
+  email: string;
+  codeHash: string;
+  expiresAt: string;
+  attempts: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -271,6 +286,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'messages';
         value: number | Message;
+      } | null)
+    | ({
+        relationTo: 'login-otps';
+        value: number | LoginOtp;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -384,6 +403,18 @@ export interface MessagesSelect<T extends boolean = true> {
   role?: T;
   content?: T;
   tokenCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "login-otps_select".
+ */
+export interface LoginOtpsSelect<T extends boolean = true> {
+  email?: T;
+  codeHash?: T;
+  expiresAt?: T;
+  attempts?: T;
   updatedAt?: T;
   createdAt?: T;
 }

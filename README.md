@@ -34,6 +34,16 @@ To do so, follow these steps:
 - Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
 - Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
 
+## Email (OTP login)
+
+Patient login can use a one-time password sent by email. Payload’s email adapter is configured in `src/email/adapter.ts`.
+
+- **Resend** when `RESEND_API_KEY` is set (recommended for production / Vercel)
+- **SMTP** when `SMTP_HOST` is set
+- **Ethereal** locally when neither is set (preview URL logged on startup)
+
+Full setup steps: [docs/email.md](docs/email.md).
+
 ## How it works
 
 The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:

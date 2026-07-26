@@ -25,7 +25,8 @@ export const Users: CollectionConfig = {
       async ({ data, operation, req }) => {
         if (operation === 'create') {
           const { totalDocs } = await req.payload.count({ collection: 'users' })
-          if (totalDocs === 0) {
+          // First user via /admin setup becomes admin. OTP signups stay patients.
+          if (totalDocs === 0 && !req.context?.otpPatientSignup) {
             data.role = 'admin'
           }
           if (!data.limitPeriodStart) {

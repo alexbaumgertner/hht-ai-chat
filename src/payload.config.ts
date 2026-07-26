@@ -8,9 +8,11 @@ import sharp from 'sharp'
 
 import { authConfig } from './auth.config'
 import { Chats } from './collections/Chats'
+import { LoginOtps } from './collections/LoginOtps'
 import { Media } from './collections/Media'
 import { Messages } from './collections/Messages'
 import { Users } from './collections/Users'
+import { getEmailAdapter } from './email/adapter'
 import { AiSettings } from './globals/AiSettings'
 
 const filename = fileURLToPath(import.meta.url)
@@ -23,9 +25,10 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Chats, Messages],
+  collections: [Users, Media, Chats, Messages, LoginOtps],
   globals: [AiSettings],
   editor: lexicalEditor(),
+  email: getEmailAdapter(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
