@@ -8,6 +8,7 @@ import React, { useState } from 'react'
 import { DisclaimerBanner } from './DisclaimerBanner'
 import { QuotaIndicator } from './QuotaIndicator'
 import { ThreadList, type ThreadSummary } from './ThreadList'
+import { UserBadge, type ChatUser } from './UserBadge'
 
 const { Header, Sider, Content } = Layout
 
@@ -16,6 +17,7 @@ type Props = {
   activeId?: string
   used: number
   limit: number
+  user: ChatUser
   threadsLoading?: boolean
   headerExtra?: React.ReactNode
   children: React.ReactNode
@@ -26,6 +28,7 @@ export function ChatShell({
   activeId,
   used,
   limit,
+  user,
   threadsLoading,
   headerExtra,
   children,
@@ -114,6 +117,7 @@ export function ChatShell({
         >
           <QuotaIndicator used={used} limit={limit} compact={!isDesktop} />
           {headerExtra}
+          <UserBadge user={user} compact={!isDesktop} />
           {isDesktop ? (
             <Button onClick={() => void logout()}>Log out</Button>
           ) : (

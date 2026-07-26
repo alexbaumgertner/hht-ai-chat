@@ -41,6 +41,20 @@ export const Users: CollectionConfig = {
   },
   fields: [
     {
+      name: 'name',
+      type: 'text',
+      admin: {
+        description: 'Display name. Populated automatically when signing in with Facebook.',
+      },
+    },
+    {
+      name: 'image',
+      type: 'text',
+      admin: {
+        description: 'Profile photo URL from the social provider.',
+      },
+    },
+    {
       name: 'role',
       type: 'select',
       required: true,

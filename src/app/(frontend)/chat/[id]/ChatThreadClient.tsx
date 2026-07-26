@@ -9,10 +9,11 @@ import { ChatPanel } from '@/components/chat/ChatPanel'
 import { ChatShell } from '@/components/chat/ChatShell'
 import type { ChatMessage } from '@/components/chat/MessageList'
 import type { ThreadSummary } from '@/components/chat/ThreadList'
+import type { ChatUser } from '@/components/chat/UserBadge'
 
 type Quota = { used: number; limit: number; remaining: number }
 
-export default function ChatThreadClient() {
+export default function ChatThreadClient({ user }: { user: ChatUser }) {
   const params = useParams<{ id: string }>()
   const chatId = params.id
   const router = useRouter()
@@ -153,6 +154,7 @@ export default function ChatThreadClient() {
       activeId={chatId}
       used={quota.used}
       limit={quota.limit}
+      user={user}
       threadsLoading={loading}
       headerExtra={headerExtra}
     >

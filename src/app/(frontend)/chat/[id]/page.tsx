@@ -19,13 +19,17 @@ export default async function ChatThreadPage() {
     redirect('/login')
   }
 
-  if (!isPatient(user as User)) {
+  const patient = user as User
+
+  if (!isPatient(patient)) {
     redirect('/admin')
   }
 
   return (
     <App>
-      <ChatThreadClient />
+      <ChatThreadClient
+        user={{ email: patient.email, name: patient.name, image: patient.image }}
+      />
     </App>
   )
 }

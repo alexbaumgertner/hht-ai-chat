@@ -134,7 +134,16 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: number;
+  id: string;
+  emailVerified?: string | null;
+  /**
+   * Display name. Populated automatically when signing in with Facebook.
+   */
+  name?: string | null;
+  /**
+   * Profile photo URL from the social provider.
+   */
+  image?: string | null;
   role: 'admin' | 'patient';
   /**
    * Override monthly message limit. Leave empty to use global default.
@@ -148,6 +157,14 @@ export interface User {
    * Start of the current usage period (monthly reset).
    */
   limitPeriodStart?: string | null;
+  accounts?:
+    | {
+        provider: string;
+        providerAccountId: string;
+        type: 'oidc' | 'oauth' | 'email' | 'webauthn';
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -157,13 +174,6 @@ export interface User {
   hash?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
   password?: string | null;
   collection: 'users';
 }
@@ -192,7 +202,7 @@ export interface Media {
  */
 export interface Chat {
   id: number;
-  user: number | User;
+  user: string | User;
   title: string;
   status: 'active' | 'archived';
   /**
@@ -248,7 +258,7 @@ export interface PayloadLockedDocument {
   document?:
     | ({
         relationTo: 'users';
-        value: number | User;
+        value: string | User;
       } | null)
     | ({
         relationTo: 'media';
@@ -265,7 +275,7 @@ export interface PayloadLockedDocument {
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: number | User;
+    value: string | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -278,7 +288,7 @@ export interface PayloadPreference {
   id: number;
   user: {
     relationTo: 'users';
-    value: number | User;
+    value: string | User;
   };
   key?: string | null;
   value?:
@@ -309,10 +319,22 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  id?: T;
+  emailVerified?: T;
+  name?: T;
+  image?: T;
   role?: T;
   messageLimit?: T;
   messagesUsed?: T;
   limitPeriodStart?: T;
+  accounts?:
+    | T
+    | {
+        provider?: T;
+        providerAccountId?: T;
+        type?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -322,13 +344,6 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -24,6 +24,11 @@ vi.mock('antd', async () => {
 })
 
 const threads = [{ id: '1', title: 'First chat' }]
+const user = {
+  email: 'patient@example.com',
+  name: 'Test Patient',
+  image: 'https://sun1.userapi.com/photo_100.jpg',
+}
 
 describe('ChatShell responsive layout', () => {
   afterEach(() => {
@@ -42,6 +47,7 @@ describe('ChatShell responsive layout', () => {
         threads,
         used: 2,
         limit: 50,
+        user,
         children: createElement('div', null, 'Chat body'),
       }),
     )
@@ -52,6 +58,8 @@ describe('ChatShell responsive layout', () => {
     expect(screen.getByRole('button', { name: 'Log out' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Open conversations' })).toBeNull()
     expect(screen.getByText('Chat body')).toBeTruthy()
+    expect(screen.getByText('patient@example.com')).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'Test Patient' })).toBeTruthy()
   })
 
   it('hides sidebar on mobile and exposes a conversations drawer trigger', () => {
@@ -62,6 +70,7 @@ describe('ChatShell responsive layout', () => {
         threads,
         used: 2,
         limit: 50,
+        user,
         children: createElement('div', null, 'Chat body'),
       }),
     )
@@ -71,5 +80,8 @@ describe('ChatShell responsive layout', () => {
     expect(screen.getByRole('button', { name: 'Open conversations' })).toBeTruthy()
     expect(screen.getByLabelText('Log out')).toBeTruthy()
     expect(screen.queryByRole('complementary')).toBeNull()
+    // Compact badge keeps the avatar but drops the email label.
+    expect(screen.getByRole('img', { name: 'Test Patient' })).toBeTruthy()
+    expect(screen.queryByText('patient@example.com')).toBeNull()
   })
 })

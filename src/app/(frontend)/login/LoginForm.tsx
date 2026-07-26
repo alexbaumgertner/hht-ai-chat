@@ -1,6 +1,8 @@
 'use client'
 
-import { Alert, App, Button, Card, Form, Input, Typography } from 'antd'
+import { FacebookFilled } from '@ant-design/icons'
+import { Alert, App, Button, Card, Divider, Form, Input, Typography } from 'antd'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 
@@ -9,11 +11,18 @@ type LoginValues = {
   password: string
 }
 
-export default function LoginPage() {
+type SocialProvider = 'facebook'
+
+type Props = {
+  oauthError?: string | null
+}
+
+export default function LoginPage({ oauthError }: Props) {
   const router = useRouter()
   const { message } = App.useApp()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null)
 
   const onFinish = async (values: LoginValues) => {
     setLoading(true)
@@ -52,6 +61,18 @@ export default function LoginPage() {
     }
   }
 
+  // Redirect to the home route so the existing role-based routing decides the destination.
+  const onSocialSignIn = (provider: SocialProvider) => {
+    setError(null)
+    setSocialLoading(provider)
+    void signIn(provider, { callbackUrl: '/' }).catch(() => {
+      setError('Unable to reach the sign-in provider. Please try again.')
+      setSocialLoading(null)
+    })
+  }
+
+  const visibleError = error ?? oauthError
+
   return (
     <div
       style={{
@@ -67,11 +88,26 @@ export default function LoginPage() {
           HHT AI Chat
         </Typography.Title>
         <Typography.Paragraph type="secondary">
-          Sign in with the account your care team created for you.
+          Sign in with your social account, or with the account your care team created for you.
         </Typography.Paragraph>
-        {error ? (
-          <Alert type="error" message={error} style={{ marginBottom: 16 }} showIcon />
+        {visibleError ? (
+          <Alert type="error" message={visibleError} style={{ marginBottom: 16 }} showIcon />
         ) : null}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Button
+            block
+            size="large"
+            icon={<FacebookFilled />}
+            loading={socialLoading === 'facebook'}
+            disabled={loading || (socialLoading !== null && socialLoading !== 'facebook')}
+            onClick={() => onSocialSignIn('facebook')}
+          >
+            Continue with Facebook
+          </Button>
+        </div>
+        <Divider plain>
+          <Typography.Text type="secondary">or</Typography.Text>
+        </Divider>
         <Form layout="vertical" onFinish={(v) => void onFinish(v)} requiredMark={false}>
           <Form.Item
             label="Email"
@@ -90,7 +126,14 @@ export default function LoginPage() {
           >
             <Input.Password autoComplete="current-password" size="large" />
           </Form.Item>
-          <Button type="primary" htmlType="submit" block size="large" loading={loading}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            size="large"
+            loading={loading}
+            disabled={socialLoading !== null}
+          >
             Sign in
           </Button>
         </Form>

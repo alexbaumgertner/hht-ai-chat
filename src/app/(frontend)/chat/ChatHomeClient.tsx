@@ -8,6 +8,7 @@ import { ChatPanel } from '@/components/chat/ChatPanel'
 import { ChatShell } from '@/components/chat/ChatShell'
 import type { ChatMessage } from '@/components/chat/MessageList'
 import type { ThreadSummary } from '@/components/chat/ThreadList'
+import type { ChatUser } from '@/components/chat/UserBadge'
 
 type Quota = { used: number; limit: number; remaining: number }
 
@@ -20,7 +21,7 @@ async function fetchThreads(): Promise<{ docs: ThreadSummary[]; quota: Quota }> 
   return res.json()
 }
 
-export default function ChatHomeClient() {
+export default function ChatHomeClient({ user }: { user: ChatUser }) {
   const router = useRouter()
   const { message } = App.useApp()
   const [threads, setThreads] = useState<ThreadSummary[]>([])
@@ -112,7 +113,13 @@ export default function ChatHomeClient() {
   }
 
   return (
-    <ChatShell threads={threads} used={quota.used} limit={quota.limit} threadsLoading={loading}>
+    <ChatShell
+      threads={threads}
+      used={quota.used}
+      limit={quota.limit}
+      user={user}
+      threadsLoading={loading}
+    >
       <ChatPanel
         title="New conversation"
         messages={messages}

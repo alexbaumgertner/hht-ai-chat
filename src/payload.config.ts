@@ -2,9 +2,11 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
+import { authjsPlugin } from 'payload-authjs'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
+import { authConfig } from './auth.config'
 import { Chats } from './collections/Chats'
 import { Media } from './collections/Media'
 import { Messages } from './collections/Messages'
@@ -34,5 +36,11 @@ export default buildConfig({
     },
   }),
   sharp,
-  plugins: [],
+  plugins: [
+    authjsPlugin({
+      authjsConfig: authConfig,
+      // Keep Payload's email/password login working alongside social login.
+      enableLocalStrategy: true,
+    }),
+  ],
 })
