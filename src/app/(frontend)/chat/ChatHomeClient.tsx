@@ -4,7 +4,7 @@ import { App } from 'antd'
 import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
 
-import { ChatPanel } from '@/components/chat/ChatPanel'
+import { ChatPanel, type PromptOption } from '@/components/chat/ChatPanel'
 import { ChatShell } from '@/components/chat/ChatShell'
 import type { ChatMessage } from '@/components/chat/MessageList'
 import type { ThreadSummary } from '@/components/chat/ThreadList'
@@ -21,6 +21,16 @@ async function fetchThreads(): Promise<{ docs: ThreadSummary[]; quota: Quota }> 
   return res.json()
 }
 
+async function fetchPrompts(): Promise<PromptOption[]> {
+  const res = await fetch('/api/prompts', { credentials: 'include' })
+  if (res.status === 401) {
+    throw new Error('unauthorized')
+  }
+  if (!res.ok) throw new Error('Failed to load prompts')
+  const data = (await res.json()) as { docs: PromptOption[] }
+  return data.docs
+}
+
 export default function ChatHomeClient({ user }: { user: ChatUser }) {
   const router = useRouter()
   const { message } = App.useApp()
@@ -30,6 +40,9 @@ export default function ChatHomeClient({ user }: { user: ChatUser }) {
   const [sending, setSending] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [streaming, setStreaming] = useState('')
+  const [prompts, setPrompts] = useState<PromptOption[]>([])
+  const [promptsLoading, setPromptsLoading] = useState(true)
+  const [selectedPromptId, setSelectedPromptId] = useState<string | number | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -47,9 +60,31 @@ export default function ChatHomeClient({ user }: { user: ChatUser }) {
     }
   }, [message, router])
 
+  const loadPrompts = useCallback(async () => {
+    setPromptsLoading(true)
+    try {
+      const docs = await fetchPrompts()
+      setPrompts(docs)
+      const defaultPrompt = docs.find((p) => p.isDefault) ?? docs[0]
+      setSelectedPromptId((prev) => {
+        if (prev != null && docs.some((p) => String(p.id) === String(prev))) return prev
+        return defaultPrompt?.id ?? null
+      })
+    } catch (err) {
+      if (err instanceof Error && err.message === 'unauthorized') {
+        router.push('/login')
+        return
+      }
+      message.error('Could not load prompts')
+    } finally {
+      setPromptsLoading(false)
+    }
+  }, [message, router])
+
   useEffect(() => {
     void load()
-  }, [load])
+    void loadPrompts()
+  }, [load, loadPrompts])
 
   const overLimit = quota.remaining <= 0
 
@@ -63,7 +98,10 @@ export default function ChatHomeClient({ user }: { user: ChatUser }) {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          ...(selectedPromptId != null ? { promptId: selectedPromptId } : {}),
+        }),
       })
 
       if (res.status === 429) {
@@ -127,6 +165,10 @@ export default function ChatHomeClient({ user }: { user: ChatUser }) {
         overLimit={overLimit}
         sending={sending}
         onSend={onSend}
+        prompts={prompts}
+        selectedPromptId={selectedPromptId}
+        onPromptChange={setSelectedPromptId}
+        promptsLoading={promptsLoading}
       />
     </ChatShell>
   )

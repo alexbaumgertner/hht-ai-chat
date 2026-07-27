@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 
 import { checkMessageLimit, incrementMessagesUsed } from '@/lib/ai/limits'
+import {
+  PromptAccessError,
+  resolvePromptForCreate,
+  resolveSystemPromptForChat,
+} from '@/lib/ai/prompts'
 import { createChatStream } from '@/lib/ai/provider'
 import { checkRateLimit } from '@/lib/ai/rate-limit'
 import { loadAiSettings } from '@/lib/ai/settings'
@@ -10,6 +15,7 @@ import type { Chat, Message } from '@/payload-types'
 type ChatBody = {
   chatId?: string | number
   content?: string
+  promptId?: string | number
 }
 
 function titleFromContent(content: string): string {
@@ -71,6 +77,7 @@ export async function POST(request: Request) {
   }
 
   let chat: Chat
+  let systemPrompt: string
 
   if (body.chatId != null) {
     try {
@@ -89,17 +96,33 @@ export async function POST(request: Request) {
     if (ownerId !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+
+    systemPrompt = await resolveSystemPromptForChat(payload, chat)
   } else {
+    let resolved
+    try {
+      resolved = await resolvePromptForCreate(payload, user, body.promptId)
+    } catch (err) {
+      if (err instanceof PromptAccessError) {
+        return NextResponse.json({ error: err.message }, { status: err.status })
+      }
+      throw err
+    }
+
     chat = await payload.create({
       collection: 'chats',
       data: {
         user: user.id,
         title: titleFromContent(content),
         status: 'active',
+        prompt: Number(resolved.promptId),
+        promptVersionId: resolved.promptVersionId ?? undefined,
+        systemPromptSnapshot: resolved.content,
       },
       user,
       overrideAccess: false,
     })
+    systemPrompt = resolved.content
   }
 
   await payload.create({
@@ -131,6 +154,7 @@ export async function POST(request: Request) {
   try {
     const result = createChatStream({
       settings,
+      systemPrompt,
       messages: modelMessages,
       onFinish: async (text, usage) => {
         await payload.create({

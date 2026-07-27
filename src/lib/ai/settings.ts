@@ -7,12 +7,12 @@ export type ResolvedAiSettings = {
   apiKey: string
   model: string
   defaultMessageLimit: number
-  systemPrompt: string
 }
 
 /**
  * Load AI settings for server-side use only.
  * Never return apiKey to client responses.
+ * System prompts come from the Prompt Library (per-chat snapshot), not this global.
  */
 export async function loadAiSettings(payload: Payload): Promise<ResolvedAiSettings> {
   const settings = (await payload.findGlobal({
@@ -31,7 +31,6 @@ export async function loadAiSettings(payload: Payload): Promise<ResolvedAiSettin
     apiKey,
     model: settings.model || 'gpt-4.1',
     defaultMessageLimit: settings.defaultMessageLimit ?? 50,
-    systemPrompt: settings.systemPrompt || '',
   }
 }
 

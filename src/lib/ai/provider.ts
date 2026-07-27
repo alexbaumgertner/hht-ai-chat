@@ -11,10 +11,11 @@ export type ChatHistoryMessage = {
 
 export function createChatStream(options: {
   settings: ResolvedAiSettings
+  systemPrompt: string
   messages: ChatHistoryMessage[]
   onFinish?: (text: string, usage?: { totalTokens?: number }) => Promise<void> | void
 }) {
-  const { settings, messages, onFinish } = options
+  const { settings, systemPrompt, messages, onFinish } = options
 
   if (!settings.apiKey) {
     throw new Error('AI API key is not configured')
@@ -27,7 +28,7 @@ export function createChatStream(options: {
 
   return streamText({
     model,
-    system: settings.systemPrompt,
+    system: systemPrompt,
     messages,
     onFinish: async ({ text, usage }) => {
       if (onFinish) {

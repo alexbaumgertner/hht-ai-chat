@@ -11,9 +11,11 @@ import { Chats } from './collections/Chats'
 import { LoginOtps } from './collections/LoginOtps'
 import { Media } from './collections/Media'
 import { Messages } from './collections/Messages'
+import { Prompts } from './collections/Prompts'
 import { Users } from './collections/Users'
 import { getEmailAdapter } from './email/adapter'
 import { AiSettings } from './globals/AiSettings'
+import { ensureDefaultPrompt } from './lib/ai/prompts'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,7 +27,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Chats, Messages, LoginOtps],
+  collections: [Users, Media, Chats, Messages, LoginOtps, Prompts],
   globals: [AiSettings],
   editor: lexicalEditor(),
   email: getEmailAdapter(),
@@ -46,4 +48,7 @@ export default buildConfig({
       enableLocalStrategy: true,
     }),
   ],
+  onInit: async (payload) => {
+    await ensureDefaultPrompt(payload)
+  },
 })

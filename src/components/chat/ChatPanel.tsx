@@ -1,10 +1,16 @@
 'use client'
 
-import { Typography } from 'antd'
+import { Select, Typography } from 'antd'
 import React from 'react'
 
 import { Composer } from './Composer'
 import { MessageList, type ChatMessage } from './MessageList'
+
+export type PromptOption = {
+  id: number | string
+  title: string
+  isDefault: boolean
+}
 
 type Props = {
   title: string
@@ -13,6 +19,10 @@ type Props = {
   overLimit?: boolean
   sending?: boolean
   onSend: (content: string) => Promise<void> | void
+  prompts?: PromptOption[]
+  selectedPromptId?: string | number | null
+  onPromptChange?: (promptId: string | number) => void
+  promptsLoading?: boolean
 }
 
 export function ChatPanel({
@@ -22,7 +32,13 @@ export function ChatPanel({
   overLimit,
   sending,
   onSend,
+  prompts,
+  selectedPromptId,
+  onPromptChange,
+  promptsLoading,
 }: Props) {
+  const showPromptSelector = Boolean(prompts && onPromptChange)
+
   return (
     <div
       style={{
@@ -49,6 +65,27 @@ export function ChatPanel({
           overflow: 'hidden',
         }}
       >
+        {showPromptSelector ? (
+          <div style={{ marginBottom: 12, flexShrink: 0 }}>
+            <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
+              Assistant prompt
+            </Typography.Text>
+            <Select
+              style={{ width: '100%' }}
+              loading={promptsLoading}
+              value={selectedPromptId != null ? String(selectedPromptId) : undefined}
+              placeholder="Select a prompt"
+              options={(prompts ?? []).map((p) => ({
+                value: String(p.id),
+                label: p.isDefault ? `${p.title} (default)` : p.title,
+              }))}
+              onChange={(value) => {
+                const match = (prompts ?? []).find((p) => String(p.id) === value)
+                if (match) onPromptChange?.(match.id)
+              }}
+            />
+          </div>
+        ) : null}
         <div style={{ flex: 1, minHeight: 0, overflow: 'auto', marginBottom: 12 }}>
           <MessageList messages={messages} streamingContent={streamingContent} />
         </div>

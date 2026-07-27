@@ -1,4 +1,4 @@
-import type { Access, CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, FieldAccess } from 'payload'
 
 import { isAdmin } from '@/access'
 
@@ -13,6 +13,9 @@ const chatOwnerAccess: Access = ({ req: { user } }) => {
   if (isAdmin(u)) return true
   return { user: { equals: u.id } }
 }
+
+/** Prompt snapshot fields are set at create time and must not change afterward. */
+const promptSnapshotUpdateAccess: FieldAccess = () => false
 
 export const Chats: CollectionConfig = {
   slug: 'chats',
@@ -65,6 +68,42 @@ export const Chats: CollectionConfig = {
         { label: 'Active', value: 'active' },
         { label: 'Archived', value: 'archived' },
       ],
+    },
+    {
+      name: 'prompt',
+      type: 'relationship',
+      relationTo: 'prompts',
+      access: {
+        update: promptSnapshotUpdateAccess,
+      },
+      admin: {
+        position: 'sidebar',
+        description: 'Prompt template selected when this chat was created.',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'promptVersionId',
+      type: 'text',
+      access: {
+        update: promptSnapshotUpdateAccess,
+      },
+      admin: {
+        position: 'sidebar',
+        description: 'Payload version id of the prompt at chat creation.',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'systemPromptSnapshot',
+      type: 'textarea',
+      access: {
+        update: promptSnapshotUpdateAccess,
+      },
+      admin: {
+        description: 'Frozen system prompt used for every turn in this conversation.',
+        readOnly: true,
+      },
     },
     {
       name: 'messages',

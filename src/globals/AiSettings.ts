@@ -64,7 +64,8 @@ Rules:
 - Be clear, compassionate, and evidence-oriented.
 - Always remind users that this is educational information, not medical advice.`,
       admin: {
-        description: 'System prompt sent with every chat turn.',
+        description:
+          'Deprecated — use the Prompt Library collection. Used only to seed the default prompt and for legacy chats without a snapshot.',
       },
     },
   ],

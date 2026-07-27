@@ -72,6 +72,7 @@ export interface Config {
     chats: Chat;
     messages: Message;
     'login-otps': LoginOtp;
+    prompts: Prompt;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -88,6 +89,7 @@ export interface Config {
     chats: ChatsSelect<false> | ChatsSelect<true>;
     messages: MessagesSelect<false> | MessagesSelect<true>;
     'login-otps': LoginOtpsSelect<false> | LoginOtpsSelect<true>;
+    prompts: PromptsSelect<false> | PromptsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -208,6 +210,18 @@ export interface Chat {
   title: string;
   status: 'active' | 'archived';
   /**
+   * Prompt template selected when this chat was created.
+   */
+  prompt?: (number | null) | Prompt;
+  /**
+   * Payload version id of the prompt at chat creation.
+   */
+  promptVersionId?: string | null;
+  /**
+   * Frozen system prompt used for every turn in this conversation.
+   */
+  systemPromptSnapshot?: string | null;
+  /**
    * Messages in this chat (admin inspection).
    */
   messages?: {
@@ -215,6 +229,32 @@ export interface Chat {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * System prompt templates for patient chat conversations.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prompts".
+ */
+export interface Prompt {
+  id: number;
+  title: string;
+  /**
+   * System prompt body sent to the model for new conversations that select this template.
+   */
+  content: string;
+  visibility: 'public' | 'private';
+  /**
+   * Patients who may select this private prompt.
+   */
+  assignedUsers?: (string | User)[] | null;
+  status: 'active' | 'archived';
+  /**
+   * When set, new conversations use this prompt unless the patient chooses another.
+   */
+  isDefault?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -290,6 +330,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'login-otps';
         value: number | LoginOtp;
+      } | null)
+    | ({
+        relationTo: 'prompts';
+        value: number | Prompt;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -390,6 +434,9 @@ export interface ChatsSelect<T extends boolean = true> {
   user?: T;
   title?: T;
   status?: T;
+  prompt?: T;
+  promptVersionId?: T;
+  systemPromptSnapshot?: T;
   messages?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -415,6 +462,20 @@ export interface LoginOtpsSelect<T extends boolean = true> {
   codeHash?: T;
   expiresAt?: T;
   attempts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prompts_select".
+ */
+export interface PromptsSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  visibility?: T;
+  assignedUsers?: T;
+  status?: T;
+  isDefault?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -478,7 +539,7 @@ export interface AiSetting {
    */
   defaultMessageLimit: number;
   /**
-   * System prompt sent with every chat turn.
+   * Deprecated — use the Prompt Library collection. Used only to seed the default prompt and for legacy chats without a snapshot.
    */
   systemPrompt: string;
   updatedAt?: string | null;
