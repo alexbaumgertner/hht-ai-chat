@@ -2,7 +2,6 @@ import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { resendAdapter } from '@payloadcms/email-resend'
 import type { PayloadEmailAdapter } from 'payload'
 
-const defaultFromAddress = process.env.EMAIL_FROM_ADDRESS || 'noreply@localhost'
 const defaultFromName = process.env.EMAIL_FROM_NAME || 'HHT AI Chat'
 
 /**
@@ -13,12 +12,21 @@ const defaultFromName = process.env.EMAIL_FROM_NAME || 'HHT AI Chat'
  */
 export function getEmailAdapter(): PayloadEmailAdapter | Promise<PayloadEmailAdapter> {
   if (process.env.RESEND_API_KEY) {
+    const fromAddress = process.env.EMAIL_FROM_ADDRESS?.trim()
+    if (!fromAddress) {
+      throw new Error(
+        'EMAIL_FROM_ADDRESS is required when RESEND_API_KEY is set. Use a verified domain address or onboarding@resend.dev for local testing.',
+      )
+    }
+
     return resendAdapter({
       apiKey: process.env.RESEND_API_KEY,
-      defaultFromAddress,
+      defaultFromAddress: fromAddress,
       defaultFromName,
     })
   }
+
+  const defaultFromAddress = process.env.EMAIL_FROM_ADDRESS || 'noreply@localhost'
 
   if (process.env.SMTP_HOST) {
     return nodemailerAdapter({
