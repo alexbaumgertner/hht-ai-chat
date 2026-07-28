@@ -1,7 +1,7 @@
 import { headers as getHeaders } from 'next/headers.js'
 import { getPayload } from 'payload'
 
-import { isPatient } from '@/access'
+import { isAdmin, isPatient } from '@/access'
 import config from '@/payload.config'
 import type { User } from '@/payload-types'
 
@@ -17,4 +17,8 @@ export async function getAuthenticatedUser(): Promise<{
 
 export function requirePatient(user: User | null): user is User {
   return Boolean(user && isPatient(user))
+}
+
+export function requireAdmin(user: User | null): user is User {
+  return Boolean(user && isAdmin(user))
 }

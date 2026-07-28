@@ -32,7 +32,10 @@ export const Prompts: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'visibility', 'status', 'isDefault', 'updatedAt'],
-    description: 'System prompt templates for patient chat conversations.',
+    description:
+      'System prompt templates for patient chat. Prefer Archive to retire prompts; Delete is permanent.',
+    group: 'AI',
+    listSearchableFields: ['title'],
   },
   versions: {
     maxPerDoc: 100,
@@ -91,6 +94,40 @@ export const Prompts: CollectionConfig = {
           return data
         }
 
+        const wasActive = originalDoc?.status === 'active'
+        const becomingArchived = data.status === 'archived' && wasActive
+        const wasDefault = originalDoc?.isDefault === true
+
+        if (becomingArchived && wasDefault) {
+          data.isDefault = false
+
+          const replacement = await req.payload.find({
+            collection: 'prompts',
+            where: {
+              and: [
+                { status: { equals: 'active' } },
+                { visibility: { equals: 'public' } },
+                ...(originalDoc?.id ? [{ id: { not_equals: originalDoc.id } }] : []),
+              ],
+            },
+            limit: 1,
+            depth: 0,
+            req,
+            overrideAccess: true,
+          })
+
+          if (replacement.docs[0]) {
+            await req.payload.update({
+              collection: 'prompts',
+              id: replacement.docs[0].id,
+              data: { isDefault: true },
+              req,
+              overrideAccess: true,
+              context: { skipDefaultClear: true },
+            })
+          }
+        }
+
         if (data.isDefault === true) {
           const existing = await req.payload.find({
             collection: 'prompts',
@@ -119,6 +156,50 @@ export const Prompts: CollectionConfig = {
         }
 
         return data
+      },
+    ],
+    beforeDelete: [
+      async ({ req, id }) => {
+        const doc = await req.payload.findByID({
+          collection: 'prompts',
+          id,
+          depth: 0,
+          overrideAccess: true,
+        })
+
+        if (doc.status === 'active') {
+          const activeCount = await req.payload.count({
+            collection: 'prompts',
+            where: { status: { equals: 'active' } },
+            overrideAccess: true,
+          })
+
+          if (activeCount.totalDocs <= 1) {
+            throw new Error(
+              'Cannot delete the only active prompt. Create or activate another prompt first.',
+            )
+          }
+        }
+
+        if (doc.isDefault && doc.status === 'active') {
+          const otherDefaults = await req.payload.count({
+            collection: 'prompts',
+            where: {
+              and: [
+                { status: { equals: 'active' } },
+                { isDefault: { equals: true } },
+                { id: { not_equals: id } },
+              ],
+            },
+            overrideAccess: true,
+          })
+
+          if (otherDefaults.totalDocs === 0) {
+            throw new Error(
+              'Cannot delete the only default active prompt. Set another prompt as default first.',
+            )
+          }
+        }
       },
     ],
   },

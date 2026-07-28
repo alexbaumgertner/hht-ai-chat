@@ -233,7 +233,7 @@ export interface Chat {
   createdAt: string;
 }
 /**
- * System prompt templates for patient chat conversations.
+ * System prompt templates for patient chat. Prefer Archive to retire prompts; Delete is permanent.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "prompts".

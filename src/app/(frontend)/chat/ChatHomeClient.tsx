@@ -22,7 +22,7 @@ async function fetchThreads(): Promise<{ docs: ThreadSummary[]; quota: Quota }> 
 }
 
 async function fetchPrompts(): Promise<PromptOption[]> {
-  const res = await fetch('/api/prompts', { credentials: 'include' })
+  const res = await fetch('/api/chat/prompts', { credentials: 'include' })
   if (res.status === 401) {
     throw new Error('unauthorized')
   }

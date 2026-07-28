@@ -227,4 +227,140 @@ describe('Prompt library', () => {
       }),
     ).rejects.toThrow(/assigned user/i)
   })
+
+  it('auto-promotes another active public prompt when the default is archived', async () => {
+    const defaultPrompt = await payload.create({
+      collection: 'prompts',
+      data: {
+        title: `Default to archive ${stamp}`,
+        content: 'default content',
+        visibility: 'public',
+        status: 'active',
+        isDefault: true,
+      },
+      overrideAccess: true,
+    })
+
+    const backup = await payload.create({
+      collection: 'prompts',
+      data: {
+        title: `Backup ${stamp}`,
+        content: 'backup content',
+        visibility: 'public',
+        status: 'active',
+        isDefault: false,
+      },
+      overrideAccess: true,
+    })
+
+    await payload.update({
+      collection: 'prompts',
+      id: defaultPrompt.id,
+      data: { status: 'archived' },
+      overrideAccess: true,
+    })
+
+    const refreshedBackup = await payload.findByID({
+      collection: 'prompts',
+      id: backup.id,
+      overrideAccess: true,
+    })
+
+    expect(refreshedBackup.isDefault).toBe(true)
+  })
+
+  it('blocks deleting the only active prompt', async () => {
+    const tag = `${stamp}-sole-active`
+    const sole = await payload.create({
+      collection: 'prompts',
+      data: {
+        title: `Sole active ${tag}`,
+        content: 'sole',
+        visibility: 'public',
+        status: 'active',
+        isDefault: false,
+      },
+      overrideAccess: true,
+    })
+
+    const others = await payload.find({
+      collection: 'prompts',
+      where: {
+        and: [{ status: { equals: 'active' } }, { id: { not_equals: sole.id } }],
+      },
+      limit: 500,
+      overrideAccess: true,
+    })
+
+    const archivedIds: (number | string)[] = []
+    for (const doc of others.docs) {
+      archivedIds.push(doc.id)
+      await payload.update({
+        collection: 'prompts',
+        id: doc.id,
+        data: { status: 'archived', isDefault: false },
+        overrideAccess: true,
+      })
+    }
+
+    try {
+      await expect(
+        payload.delete({ collection: 'prompts', id: sole.id, overrideAccess: true }),
+      ).rejects.toThrow(/only active/i)
+    } finally {
+      for (const id of archivedIds) {
+        await payload.update({
+          collection: 'prompts',
+          id,
+          data: { status: 'active' },
+          overrideAccess: true,
+        })
+      }
+      await payload.delete({ collection: 'prompts', id: sole.id, overrideAccess: true }).catch(() => {})
+    }
+  })
+
+  it('blocks deleting the only default active prompt', async () => {
+    const tag = `${stamp}-sole-default`
+    const defaultPrompt = await payload.create({
+      collection: 'prompts',
+      data: {
+        title: `Sole default ${tag}`,
+        content: 'default sole',
+        visibility: 'public',
+        status: 'active',
+        isDefault: true,
+      },
+      overrideAccess: true,
+    })
+
+    const sibling = await payload.create({
+      collection: 'prompts',
+      data: {
+        title: `Sibling active ${tag}`,
+        content: 'sibling',
+        visibility: 'public',
+        status: 'active',
+        isDefault: false,
+      },
+      overrideAccess: true,
+    })
+
+    try {
+      await expect(
+        payload.delete({ collection: 'prompts', id: defaultPrompt.id, overrideAccess: true }),
+      ).rejects.toThrow(/only default/i)
+    } finally {
+      await payload.update({
+        collection: 'prompts',
+        id: defaultPrompt.id,
+        data: { isDefault: false },
+        overrideAccess: true,
+      })
+      await payload.delete({ collection: 'prompts', id: sibling.id, overrideAccess: true }).catch(() => {})
+      await payload
+        .delete({ collection: 'prompts', id: defaultPrompt.id, overrideAccess: true })
+        .catch(() => {})
+    }
+  })
 })
