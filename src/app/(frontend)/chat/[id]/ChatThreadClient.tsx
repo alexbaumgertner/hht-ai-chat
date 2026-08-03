@@ -27,6 +27,7 @@ export default function ChatThreadClient({ user }: { user: ChatUser }) {
   const [quota, setQuota] = useState<Quota>({ used: 0, limit: 50, remaining: 50 })
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [renaming, setRenaming] = useState(false)
   const [streaming, setStreaming] = useState('')
 
   const load = useCallback(async () => {
@@ -126,6 +127,42 @@ export default function ChatThreadClient({ user }: { user: ChatUser }) {
     }
   }
 
+  const onRename = async (nextTitle: string) => {
+    setRenaming(true)
+    try {
+      const res = await fetch(`/api/chats/${chatId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: nextTitle }),
+      })
+
+      if (res.status === 401) {
+        router.push('/login')
+        return
+      }
+
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string
+        chat?: { title?: string }
+      }
+
+      if (!res.ok) {
+        message.error(data.error || 'Could not rename chat')
+        throw new Error(data.error || 'rename failed')
+      }
+
+      const saved = data.chat?.title ?? nextTitle.trim()
+      setTitle(saved)
+      setThreads((prev) =>
+        prev.map((t) => (String(t.id) === String(chatId) ? { ...t, title: saved } : t)),
+      )
+      message.success('Conversation renamed')
+    } finally {
+      setRenaming(false)
+    }
+  }
+
   const downloadPdf = () => {
     window.location.href = `/api/chats/${chatId}/pdf`
   }
@@ -165,6 +202,8 @@ export default function ChatThreadClient({ user }: { user: ChatUser }) {
         overLimit={overLimit}
         sending={sending}
         onSend={onSend}
+        onRename={onRename}
+        renaming={renaming}
       />
     </ChatShell>
   )
