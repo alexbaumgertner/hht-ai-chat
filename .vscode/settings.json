@@ -38,5 +38,14 @@
       "source.fixAll.eslint": "explicit"
     }
   },
-  "cSpell.words": ["authjs", "devsafe", "importmap", "payloadcms", "Sider", "unrs", "vercel"]
+  "cSpell.words": [
+    "authjs",
+    "devsafe",
+    "importmap",
+    "payloadcms",
+    "Sider",
+    "speckit",
+    "unrs",
+    "vercel"
+  ]
 }
