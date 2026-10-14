@@ -1,7 +1,10 @@
 'use client'
 
-import { Select, Typography } from 'antd'
-import React from 'react'
+import { CheckOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons'
+import { Button, Input, Select, Space, Typography } from 'antd'
+import React, { useEffect, useState } from 'react'
+
+import { CHAT_TITLE_MAX_LENGTH } from '@/lib/chats/title'
 
 import { Composer } from './Composer'
 import { MessageList, type ChatMessage } from './MessageList'
@@ -23,6 +26,9 @@ type Props = {
   selectedPromptId?: string | number | null
   onPromptChange?: (promptId: string | number) => void
   promptsLoading?: boolean
+  /** When set, patient can edit the conversation title in place. */
+  onRename?: (title: string) => Promise<void> | void
+  renaming?: boolean
 }
 
 export function ChatPanel({
@@ -36,8 +42,36 @@ export function ChatPanel({
   selectedPromptId,
   onPromptChange,
   promptsLoading,
+  onRename,
+  renaming,
 }: Props) {
   const showPromptSelector = Boolean(prompts && onPromptChange)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(title)
+
+  useEffect(() => {
+    if (!editing) setDraft(title)
+  }, [title, editing])
+
+  const startEdit = () => {
+    setDraft(title)
+    setEditing(true)
+  }
+
+  const cancelEdit = () => {
+    setDraft(title)
+    setEditing(false)
+  }
+
+  const saveEdit = async () => {
+    if (!onRename) return
+    try {
+      await onRename(draft)
+      setEditing(false)
+    } catch {
+      // Keep edit mode open; onRename surfaces the error toast.
+    }
+  }
 
   return (
     <div
@@ -49,9 +83,58 @@ export function ChatPanel({
         overflow: 'hidden',
       }}
     >
-      <Typography.Title level={4} style={{ marginTop: 0, marginBottom: 12, flexShrink: 0 }}>
-        {title}
-      </Typography.Title>
+      {editing && onRename ? (
+        <Space.Compact style={{ width: '100%', marginBottom: 12, flexShrink: 0 }}>
+          <Input
+            value={draft}
+            maxLength={CHAT_TITLE_MAX_LENGTH}
+            aria-label="Conversation title"
+            onChange={(e) => setDraft(e.target.value)}
+            onPressEnter={() => void saveEdit()}
+            disabled={renaming}
+          />
+          <Button
+            type="primary"
+            icon={<CheckOutlined />}
+            aria-label="Save title"
+            loading={renaming}
+            onClick={() => void saveEdit()}
+          />
+          <Button
+            icon={<CloseOutlined />}
+            aria-label="Cancel rename"
+            disabled={renaming}
+            onClick={cancelEdit}
+          />
+        </Space.Compact>
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 12,
+            flexShrink: 0,
+            minWidth: 0,
+          }}
+        >
+          <Typography.Title
+            level={4}
+            style={{ margin: 0, flex: 1, minWidth: 0 }}
+            ellipsis
+          >
+            {title}
+          </Typography.Title>
+          {onRename ? (
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              aria-label="Rename conversation"
+              onClick={startEdit}
+            />
+          ) : null}
+        </div>
+      )}
       <div
         style={{
           background: '#fff',
